@@ -12,17 +12,21 @@ class NoteController extends Controller
 {
     public function getAllNotes(Request $request)
     {
-        $note = Note::orderBy('updated_at', 'desc')->get();
+        $notes = Note::select('notes.*', 'users.name as user_name')
+            ->join('users', 'notes.user_id', '=', 'users.id')
+            ->orderBy('notes.updated_at', 'desc')->get();
 
         return response()->json([
-            'Result' => $note,
+            'Result' => $notes,
         ], 200);
     }
+
 
     
     public function getNotesById(Request $request)
     {
-        $note = Note::find($request->id);
+        $note = Note::select('notes.*', 'users.name as user_name')
+        ->join('users', 'notes.user_id', '=', 'users.id')->find($request->id);
 
         return response()->json([
             'Result' => $note,
@@ -35,6 +39,7 @@ class NoteController extends Controller
         $user = $request->user();
         $note = Note::create([
             'user_id' => $user->id,
+            'title' => $request->title,
             'content' => $request->content,
         ]);
         
@@ -60,6 +65,7 @@ class NoteController extends Controller
         }
         
         $note->content = $request->content;
+        $note->title = $request->title;
         $note->save();
         
         return response()->json([
